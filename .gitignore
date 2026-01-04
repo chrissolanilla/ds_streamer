@@ -1,0 +1,93 @@
+############################
+# Node / JS (anywhere)
+############################
+
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+**/.turbo/
+**/.svelte-kit/
+**/.next/
+**/.parcel-cache/
+**/.cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+############################
+# Env / secrets
+############################
+
+.env
+.env.*
+!.env.example
+
+############################
+# C / C++ / Embedded builds
+############################
+
+# object files
+**/*.o
+**/*.obj
+**/*.elf
+**/*.map
+**/*.out
+**/*.hex
+**/*.bin
+
+# static / shared libs
+**/*.a
+**/*.so
+**/*.dylib
+**/*.dll
+
+# build directories
+**/cmake-build-*/
+**/build-*/
+**/Debug/
+**/Release/
+
+# dependency files
+**/*.d
+
+############################
+# Toolchains / IDEs
+############################
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+
+############################
+# OS junk
+############################
+
+.DS_Store
+Thumbs.db
+
+############################
+# Test / coverage
+############################
+
+**/coverage/
+**/.nyc_output/
+
+############################
+# Logs
+############################
+
+*.log
+
+############################
+# Misc
+############################
+
+**/.tmp/
+**/.temp/
+
