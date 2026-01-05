@@ -28,7 +28,13 @@ canvas {
 }
 
 .mobile-UI {
-    display: flex;
+    /* display: flex; */
+    position: absolute;
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+
+    /* let canvas get events except buttons??? */
+    /* pointer-events: none; */
 }
 
 .dpad {
