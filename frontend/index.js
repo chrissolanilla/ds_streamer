@@ -16,6 +16,7 @@ const FPS = 60;
 let dz = 1;
 let angle = 0;
 
+//our cube object
 //verticies
 const vs = [
     {x: 0.25, y: 0.25, z: 0.25},
@@ -38,6 +39,15 @@ const fs = [
     [2,6],
     [3,7],
 ]
+
+// shift in model space
+let cubePos = { x: 0, y: 0, z: 0 };
+let held = {
+    left:false,
+    right:false,
+    up:false,
+    down:false
+};
 
 //functions
 function resizeCanvas(){
@@ -111,8 +121,27 @@ function rotate_xz({x,y,z}, angle){
     };
 }
 
+function translate({x,y,z}, t) {
+  return { x: x + t.x, y: y + t.y, z: z + t.z };
+}
+
+
+function shiftCube(){
+    //basically, we just got to adjust our array of vertices
+}
+
 function frame() {
     const dt = 1/FPS;
+
+    //before we draw have movespeed
+    //
+    const moveSpeed = 0.9; // units per second
+    if (held.left)  cubePos.x -= moveSpeed * dt;
+    if (held.right) cubePos.x += moveSpeed * dt;
+    if (held.up)    cubePos.y += moveSpeed * dt;
+    if (held.down)  cubePos.y -= moveSpeed * dt;
+
+        //
     //dz+=1*dt;
     //control speed by constant
     angle += 1*Math.PI*dt;
@@ -130,8 +159,8 @@ function frame() {
             //this makes it so that if its the last index, it wraps back around to the first
             const b = vs[f[(i+1)%f.length]];
             line(
-                screen(project(translate_z(rotate_xz(a,angle),dz))),
-                screen(project(translate_z(rotate_xz(b,angle),dz)))
+                screen(project(translate_z(translate(rotate_xz(a,angle), cubePos), dz))),
+                screen(project(translate_z(translate(rotate_xz(b,angle), cubePos), dz)))
             )
         }
     }
@@ -143,6 +172,36 @@ function frame() {
 setTimeout(frame, 1000/FPS);
 
 
+//prevent zoom or scroll when clicking buttons
+document.querySelectorAll(".dpad button").forEach(btn => {
+    btn.addEventListener("contextmenu", e => e.preventDefault());
+    btn.addEventListener("pointerdown", e => e.preventDefault());
+    btn.addEventListener("pointerup", e => e.preventDefault());
+});
 
 
+//now we can have some logic to move our spinnign cube around.
+const leftButton = document.getElementById("left");
+const rightButton = document.getElementById("right");
+const upButton = document.getElementById("up");
+const downButton = document.getElementById("down");
+
+//TODO tweak more
+const step = 10;
+
+function move(dx, dy) {
+    cubePos.x += dx;
+    cubePos.y += dy;
+}
+function bindHold(btn, key) {
+    btn.addEventListener("pointerdown", e => { e.preventDefault(); held[key] = true; });
+    btn.addEventListener("pointerup",   e => { e.preventDefault(); held[key] = false; });
+    btn.addEventListener("pointercancel", () => { held[key] = false; });
+    btn.addEventListener("pointerleave",  () => { held[key] = false; });
+}
+
+bindHold(leftButton, "left");
+bindHold(rightButton, "right");
+bindHold(upButton, "up");
+bindHold(downButton, "down");
 
