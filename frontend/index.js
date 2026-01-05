@@ -1,7 +1,8 @@
+//you dont need to do get element id if its valid lowkey
 console.log(game);
 //TODO: make it adapt to different screens sizes(mobile) and rotation?
-game.width = 800;
-game.height = 800;
+// game.width = 800;
+// game.height = 800;
 
 //colors
 const backgroundColor = "#1C1E26";
@@ -10,7 +11,6 @@ const borderColor = "#BF95F9";
 
 //ctx init
 const ctx = game.getContext("2d");
-console.log(ctx);
 //fps
 const FPS = 60;
 let dz = 1;
@@ -40,9 +40,25 @@ const fs = [
 ]
 
 //functions
+function resizeCanvas(){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = game.getBoundingClientRect();
+    game.width = Math.round(rect.width * dpr);
+    game.height = Math.round(rect.height * dpr);
+    //make it use css pixels
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+//call this shit once i guess and whenever we resize
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("orientationchange", resizeCanvas);
+resizeCanvas();
+
 function clear() {
+    const w = game.getBoundingClientRect().width;
+    const h = game.getBoundingClientRect().height;
     ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0,0,game.width,game.height);
+    ctx.fillRect(0,0,w,h);
 }
 
 function point({x,y}) {
@@ -63,9 +79,11 @@ function line(p1,p2){
 function screen(p){
     //translate values from -1..1 to 0..w/h
     //make y correctly go up
+    const w = game.getBoundingClientRect().width;
+    const h = game.getBoundingClientRect().height;
     return {
-        x: (p.x + 1)/2*game.width,
-        y: (1-(p.y + 1)/2)*game.height,
+        x: (p.x + 1)/2*w,
+        y: (1-(p.y + 1)/2)*h,
     }
 }
 
