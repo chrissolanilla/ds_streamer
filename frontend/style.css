@@ -38,21 +38,38 @@ canvas {
 }
 
 .dpad {
+  --pad: clamp(142px, 18vmin, 140px);   /* whole dpad size */
+  --btn: calc(var(--pad) / 3);
+
+  pointer-events: auto;
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
-  /* gap: 5px; */
+  grid-template-columns: repeat(3, var(--btn));
+  grid-template-rows: repeat(3, var(--btn));
   place-items: center;
+  /* gap: 6px; */
+  opacity: 0.85;
+
 
   button {
-    width:100px;
-    height:100px;
-    font-size:4rem;
-    background-color: #BF95F9;
-    color: 000;
-    border: none;
-    border-radius: 5px;
-    /* my goated color but looks ugly color: #FF7AC6; */
+    width: var(--btn);
+      height: var(--btn);
+      font-size: calc(var(--btn) * 0.55);
+      /* translucent */
+      background: rgba(191, 149, 249, 0.75);
+      color: #000;
+      /* idk if i want a border tbh */
+      border: 2px solid rgba(255, 122, 198,0.75);
+      border-radius: 14px;
+      backdrop-filter: blur(6px);            /* nice on iOS */
+      -webkit-backdrop-filter: blur(6px);
+        /* width:100px; */
+        /* height:100px; */
+        /* font-size:4rem; */
+        /* background-color: #BF95F9; */
+        /* color: 000; */
+        /* border: none; */
+        /* border-radius: 5px; */
+        /* my goated color but looks ugly color: #FF7AC6; */
   }
 
   button:active {
