@@ -22,6 +22,15 @@ canvas {
     width:100px;
     height:100px;
     font-size:4rem;
+    background-color: #BF95F9;
+    color: 000;
+    border: none;
+    border-radius: 5px;
+    /* my goated color but looks ugly color: #FF7AC6; */
+  }
+
+  button:active {
+    transform: scale(0.98);
   }
 }
 
