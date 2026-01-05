@@ -8,6 +8,10 @@ body {
     user-select: none;
 }
 
+.dpad, .dpad button {
+  touch-action: manipulation; /* allows taps, prevents double-tap zoom */
+}
+
 /* ts fill screen */
 #app {
   position: fixed;
@@ -20,6 +24,7 @@ body {
     width: 100%;
     height: 100%;
     display: block;
+    z-index:0;
 }
 
 canvas {
@@ -28,6 +33,7 @@ canvas {
 }
 
 .mobile-UI {
+    z-index: 10;
     /* display: flex; */
     position: absolute;
     left: max(12px, env(safe-area-inset-left));
@@ -41,7 +47,7 @@ canvas {
   --pad: clamp(142px, 18vmin, 140px);   /* whole dpad size */
   --btn: calc(var(--pad) / 3);
 
-  pointer-events: auto;
+  /* pointer-events: auto; */
   display: grid;
   grid-template-columns: repeat(3, var(--btn));
   grid-template-rows: repeat(3, var(--btn));

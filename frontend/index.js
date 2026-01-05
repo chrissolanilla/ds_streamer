@@ -91,9 +91,18 @@ function screen(p){
     //make y correctly go up
     const w = game.getBoundingClientRect().width;
     const h = game.getBoundingClientRect().height;
+
+    //make it so the cube stays same size and now get taller or wider
+    //uniform scale
+    const s = Math.min(w, h);
+    const cx = w / 2;
+    const cy = h / 2;
+
     return {
-        x: (p.x + 1)/2*w,
-        y: (1-(p.y + 1)/2)*h,
+        x: cx + p.x * (s / 2),
+        y: cy - p.y * (s / 2),
+        // x: (p.x + 1)/2*w,
+        // y: (1-(p.y + 1)/2)*h,
     }
 }
 
