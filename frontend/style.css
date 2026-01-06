@@ -84,6 +84,10 @@ body {
 
 }
 
+.dpad, .dpad * {
+    touch-action: none;
+}
+
 .up    {
     grid-row: 1;
     grid-column: 2;

@@ -87,6 +87,47 @@ let held = {
 };
 
 //functions
+function setHeld(dir){
+    clearHeld();
+    if(dir){
+        held[dir] = true;
+    }
+}
+
+function clearHeld(){
+    held.left = false;
+    held.right = false;
+    held.up = false;
+    held.down = false;
+}
+
+function directionFromPoint(clientX,clientY){
+    const r = dpad.getBoundingClientRect();
+    const cx = r.left +r.width /2;
+    const cy = r.top +r.height /2;
+    const dx = clientX-cx;
+    const dy = clientY-cy;
+    //center should be nothing
+    const deadZone = Math.min(r.width, r.height) * 0.12;
+    if(Math.hypot(dx,dy) < deadZone){
+        return null;
+    }
+
+    //make the axis win
+    if(Math.abs(dx) > Math.abs(dy)){
+        return dx < 0 ? "left" : "right";
+    }
+
+    return dy < 0 ? "up" : "down";
+}
+
+function endDpad(e){
+    if(dpad.hasPointerCapture(e.pointerId)){
+        dpad.releasePointerCapture(e.pointerId);
+    }
+    clearHeld();
+}
+
 function resizeCanvas(){
     const dpr = window.devicePixelRatio || 1;
     const rect = game.getBoundingClientRect();
@@ -231,6 +272,24 @@ const leftButton = document.getElementById("left");
 const rightButton = document.getElementById("right");
 const upButton = document.getElementById("up");
 const downButton = document.getElementById("down");
+const dpad = document.querySelector(".dpad");
+
+dpad.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    dpad.setPointerCapture(e.pointerId);
+    setHeld(directionFromPoint(e.clientX, e.clientY));
+});
+
+dpad.addEventListener("pointermove", (e) => {
+    if (!dpad.hasPointerCapture(e.pointerId)) {
+        return;
+    }
+    e.preventDefault();
+    setHeld(directionFromPoint(e.clientX,e.clientY));
+});
+
+dpad.addEventListener("pointerup", endDpad);
+dpad.addEventListener("pointercancel", endDpad);
 
 //TODO tweak more
 const step = 10;
