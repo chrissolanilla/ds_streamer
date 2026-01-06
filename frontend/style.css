@@ -137,12 +137,12 @@ body {
         border-radius: 999px;
     }
 
-    /* make b offset like the nes */
-    .b {
+    /* make a offset like the nes */
+    .a {
         transform: translateY(-8px);
     }
 
-    .b:active {
+    .a:active {
         transform: translateY(-8px) scale(0.98);
     }
 }
