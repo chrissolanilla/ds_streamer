@@ -1,3 +1,4 @@
 # WIP
-some cool canavs stuff being done rn
+Remote Control of DS hardware via web that is mobile friendly
+
 

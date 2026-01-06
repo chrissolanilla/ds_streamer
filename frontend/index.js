@@ -1,8 +1,45 @@
+//sound system
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const soundBuffers = new Map();
+
+async function loadSound(name, url) {
+  const res = await fetch(url);
+  const arr = await res.arrayBuffer();
+  const buf = await audioCtx.decodeAudioData(arr);
+  soundBuffers.set(name, buf);
+}
+
+function playSound(name, { volume = 0.6 } = {}) {
+  const buf = soundBuffers.get(name);
+  if (!buf) return;
+
+  //for ios and chrome
+  if (audioCtx.state !== "running") audioCtx.resume();
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+
+  const gain = audioCtx.createGain();
+  gain.gain.value = volume;
+
+  src.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  src.start(0);
+}
+
+//preload sounds for faster
+Promise.all([
+  loadSound("a", "sounds/plink.mp3"),
+  loadSound("b", "sounds/shiny-pokemon.mp3"),
+  loadSound("start", "sounds/pokemon-battle.mp3"),
+  loadSound("select", "sounds/quien.mp3"),
+]).catch(console.error);
+
+
+
 //you dont need to do get element id if its valid lowkey
 console.log(game);
-//TODO: make it adapt to different screens sizes(mobile) and rotation?
-// game.width = 800;
-// game.height = 800;
 
 //colors
 const backgroundColor = "#1C1E26";
@@ -184,8 +221,8 @@ setTimeout(frame, 1000/FPS);
 //prevent zoom or scroll when clicking buttons
 document.querySelectorAll(".dpad button").forEach(btn => {
     btn.addEventListener("contextmenu", e => e.preventDefault());
-    btn.addEventListener("pointerdown", e => e.preventDefault());
-    btn.addEventListener("pointerup", e => e.preventDefault());
+    // btn.addEventListener("pointerdown", e => e.preventDefault());
+    // btn.addEventListener("pointerup", e => e.preventDefault());
 });
 
 
@@ -213,4 +250,24 @@ bindHold(leftButton, "left");
 bindHold(rightButton, "right");
 bindHold(upButton, "up");
 bindHold(downButton, "down");
+
+
+//silly shit
+const aButton = document.getElementById("a");
+const bButton = document.getElementById("b");
+const startButton = document.getElementById("start");
+const selectButton = document.getElementById("select");
+
+function onPress(btn, soundName) {
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    playSound(soundName);
+  });
+}
+
+onPress(aButton, "a");
+onPress(bButton, "b");
+onPress(startButton, "start");
+onPress(selectButton, "select");
+
 
