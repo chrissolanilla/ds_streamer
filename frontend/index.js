@@ -298,6 +298,7 @@ function move(dx, dy) {
     cubePos.x += dx;
     cubePos.y += dy;
 }
+
 function bindHold(btn, key) {
     btn.addEventListener("pointerdown", e => { e.preventDefault(); held[key] = true; });
     btn.addEventListener("pointerup",   e => { e.preventDefault(); held[key] = false; });
@@ -305,17 +306,46 @@ function bindHold(btn, key) {
     btn.addEventListener("pointerleave",  () => { held[key] = false; });
 }
 
+function bindHoldFlag(btn, flagName) {
+    btn.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        held[flagName] = true;
+        sendState(true);
+    });
+    btn.addEventListener("pointerup",   e => {
+        e.preventDefault();
+        held[flagName] = false;
+        sendState(true);
+    });
+    btn.addEventListener("pointercancel", () => {
+        //held[key] = false;
+        held[flagName] = false;
+        sendState(true);
+    });
+    btn.addEventListener("pointerleave",  () => {
+        //held[key] = false;
+        held[flagName] = false;
+        sendState(true);
+    });
+}
+//silly shit
+const aButton = document.getElementById("a");
+const bButton = document.getElementById("b");
+const startButton = document.getElementById("start");
+const selectButton = document.getElementById("select");
+
+bindHoldFlag(aButton, "a");
+bindHoldFlag(bButton, "b");
+bindHoldFlag(startButton, "start");
+bindHoldFlag(selectButton, "select");
+
+//we still keep this and the function so sliding works
 bindHold(leftButton, "left");
 bindHold(rightButton, "right");
 bindHold(upButton, "up");
 bindHold(downButton, "down");
 
 
-//silly shit
-const aButton = document.getElementById("a");
-const bButton = document.getElementById("b");
-const startButton = document.getElementById("start");
-const selectButton = document.getElementById("select");
 
 function onPress(btn, soundName) {
   btn.addEventListener("pointerdown", (e) => {
@@ -330,3 +360,48 @@ onPress(startButton, "start");
 onPress(selectButton, "select");
 
 
+//web socket
+const ws = new WebSocket(`ws://${location.hostname}:9001`);
+ws.addEventListener("open", () => console.log("websocket connected"));
+ws.addEventListener("close", () => console.log("websocket connection closed"));
+ws.addEventListener("error", () => console.log("ERROR: websocket error"));
+
+let seq = 0;
+
+const BTN = {
+    UP: 1 << 0,
+    DOWN: 1 << 1,
+    LEFT: 1 << 2,
+    RIGHT: 1 << 3,
+    A: 1 << 4,
+    B: 1 << 5,
+    START: 1 << 6,
+    SELECT: 1 << 7,
+};
+
+//we use bitmask for speed and in C++ too
+function computeMask() {
+    let m = 0;
+    if (held.up)    m |= BTN.UP;
+    if (held.down)  m |= BTN.DOWN;
+    if (held.left)  m |= BTN.LEFT;
+    if (held.right) m |= BTN.RIGHT;
+    if (held.a)     m |= BTN.A;
+    if (held.b)     m |= BTN.B;
+    if (held.start) m |= BTN.START;
+    if (held.select)m |= BTN.SELECT;
+    return m;
+}
+
+let lastSentMask = -1;
+function sendState(force = false){
+    if(ws.readyState !== WebSocket.OPEN) return;
+    const mask = computeMask();
+    if(!force && mask == lastSentMask) return;
+    //if state aight and we got a connection, then send and increment seq
+    lastSentMask = mask;
+    ws.send(JSON.stringify({type: "state", mask, seq: seq++ }));
+}
+
+//send at the steady rate 60fps ig
+setInterval(() => sendState(false), 1000/60);

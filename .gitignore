@@ -45,6 +45,8 @@ pnpm-debug.log*
 **/*.dll
 
 # build directories
+build/
+dist/
 **/cmake-build-*/
 **/build-*/
 **/Debug/

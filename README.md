@@ -13,5 +13,9 @@ npx serve frontend/.
 
 For running the backend server:
 ```
-TODO
+at repo root:
+git clone --recurse-submodules <repo>
+cd server
+make
+./server
 ```
