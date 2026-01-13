@@ -56,9 +56,54 @@ body {
     }
 }
 
+/* make bumper buttons look  same */
+.hud button,
+.bumpers button {
+	background: rgba(191, 149, 249, 0.75);
+	color: #000;
+	border: 2px solid rgba(255, 122, 198, 0.75);
+	border-radius: 14px;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	touch-action: manipulation;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.hud button:active,
+.bumpers button:active {
+	transform: scale(0.98);
+}
+
+.bumpers {
+	position: fixed;
+	left: max(12px, env(safe-area-inset-left));
+	right: max(12px, env(safe-area-inset-right));
+	top: max(12px, env(safe-area-inset-top));
+	z-index: 11;
+
+	display: flex;
+	justify-content: space-between;
+	pointer-events: none;
+}
+
+.bumpers button {
+	pointer-events: auto;
+	--bumper-h: clamp(34px, 6vmin, 46px);
+	--bumper-w: clamp(70px, 14vmin, 120px);
+
+	height: var(--bumper-h);
+	min-width: var(--bumper-w);
+	border-radius: 999px;
+	font-size: clamp(14px, 3vmin, 18px);
+	opacity: 0.85;
+}
+
+
+
 /* dpad */
 .dpad {
-    --pad: clamp(110px, 18vmin, 180px);
+    --pad: clamp(82px, 18vmin, 180px);
     --btn: calc(var(--pad) / 3);
 
     display: grid;
@@ -107,8 +152,8 @@ body {
 
 /* select and start */
 .meta {
-    --meta-h: clamp(36px, 6vmin, 44px);
-    --meta-w: clamp(64px, 12vmin, 90px);
+    --meta-h: clamp(26px, 6vmin, 44px);
+    --meta-w: clamp(44px, 12vmin, 90px);
 
     display: flex;
     gap: 10px;
@@ -126,30 +171,35 @@ body {
 }
 
 /* A and B buttons */
+/* face buttons (DS style diamond like dpad) */
 .ab {
-    --ab-size: clamp(36px, 10vmin, 74px);
+  --pad: clamp(82px, 18vmin, 180px);
+  --btn: calc(var(--pad) / 3);
 
-    display: flex;
-    gap: clamp(10px, 2.5vmin, 18px);
-    align-items: flex-end;
-    opacity: 0.9;
-
-    button {
-        width: var(--ab-size);
-        height: var(--ab-size);
-        font-size: clamp(18px, 4.2vmin, 32px);
-        border-radius: 999px;
-    }
-
-    /* make a offset like the nes */
-    .a {
-        transform: translateY(-8px);
-    }
-
-    .a:active {
-        transform: translateY(-8px) scale(0.98);
-    }
+  display: grid;
+  grid-template-columns: repeat(3, var(--btn));
+  grid-template-rows: repeat(3, var(--btn));
+  place-items: center;
+  opacity: 0.9;
 }
+
+.ab button {
+  width: var(--btn);
+  height: var(--btn);
+  font-size: calc(var(--btn) * 0.55);
+  border-radius: 999px; /* keep face buttons round */
+}
+
+/* DS diamond:
+      Y
+   X     A
+      B
+*/
+.ab .y { grid-row: 1; grid-column: 2; }
+.ab .x { grid-row: 2; grid-column: 1; }
+.ab .a { grid-row: 2; grid-column: 3; }
+.ab .b { grid-row: 3; grid-column: 2; }
+
 
 /* idk */
 @media (max-height: 420px) {
