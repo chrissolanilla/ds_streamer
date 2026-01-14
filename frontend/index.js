@@ -331,13 +331,21 @@ function bindHoldFlag(btn, flagName) {
 //silly shit
 const aButton = document.getElementById("a");
 const bButton = document.getElementById("b");
+const xButton = document.getElementById("x");
+const yButton = document.getElementById("y");
 const startButton = document.getElementById("start");
 const selectButton = document.getElementById("select");
+const rButton = document.getElementById("r");
+const lButton = document.getElementById("l");
 
 bindHoldFlag(aButton, "a");
 bindHoldFlag(bButton, "b");
 bindHoldFlag(startButton, "start");
 bindHoldFlag(selectButton, "select");
+bindHoldFlag(xButton, "x");
+bindHoldFlag(yButton, "y");
+bindHoldFlag(rButton, "r");
+bindHoldFlag(lButton, "l");
 
 //we still keep this and the function so sliding works
 bindHold(leftButton, "left");
@@ -369,14 +377,18 @@ ws.addEventListener("error", () => console.log("ERROR: websocket error"));
 let seq = 0;
 
 const BTN = {
-    UP: 1 << 0,
-    DOWN: 1 << 1,
-    LEFT: 1 << 2,
-    RIGHT: 1 << 3,
-    A: 1 << 4,
-    B: 1 << 5,
-    START: 1 << 6,
-    SELECT: 1 << 7,
+    B:		1	<< 0,
+    Y:		1	<< 1,
+    SELECT:	1	<< 2,
+    START:	1	<< 3,
+    UP:		1	<< 4,
+    DOWN:	1	<< 5,
+    LEFT:	1	<< 6,
+    RIGHT:	1	<< 7,
+    A:		1	<< 8,
+    X:		1	<< 9,
+    L:		1	<< 10,
+    R:		1	<< 11,
 };
 
 //we use bitmask for speed and in C++ too
@@ -388,6 +400,10 @@ function computeMask() {
     if (held.right) m |= BTN.RIGHT;
     if (held.a)     m |= BTN.A;
     if (held.b)     m |= BTN.B;
+    if (held.x)     m |= BTN.X;
+    if (held.y)     m |= BTN.Y;
+    if (held.l)     m |= BTN.L;
+    if (held.r)     m |= BTN.R;
     if (held.start) m |= BTN.START;
     if (held.select)m |= BTN.SELECT;
     return m;
@@ -400,7 +416,11 @@ function sendState(force = false){
     if(!force && mask == lastSentMask) return;
     //if state aight and we got a connection, then send and increment seq
     lastSentMask = mask;
-    ws.send(JSON.stringify({type: "state", mask, seq: seq++ }));
+	//send 2 bytes instead of json to be faster
+	const buf = new ArrayBuffer(2);
+	new DataView(buf).setUint16(0, lastSentMask, true);
+    // ws.send(JSON.stringify({type: "state", mask, seq: seq++ }));
+	ws.send(buf);
 }
 
 //send at the steady rate 60fps ig

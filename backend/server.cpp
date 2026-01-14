@@ -60,20 +60,41 @@ int main(void){
                     ws->getUserData()->lastMask = 0;
                     std::cout << "client connected\n";
                 },
-            .message = [](auto *ws, std::string_view msg, uWS::OpCode){
+            .message = [](auto *ws, std::string_view msg, uWS::OpCode op){
                     //OpCode? what in the assembly
-                    uint32_t mask;
-                    if(!parseMask(msg, mask)){
-                        return;
-                    }
-                    auto *d = ws->getUserData();
-                    d->lastMs = nowMs();
-                    if(mask != d->lastMask){
-                        //idk why we do this tbh, if its wrong then make it right. i guess rollback? or state correction
-                        d->lastMask = mask;
-                        std::cout << "mask = " << mask << "\n";
-                        //TODO: send the serial mask to the PCB sendSerial(mask);
-                    }
+					auto *d = ws->getUserData();
+					d->lastMs = nowMs();
+					uint32_t mask = 0;
+
+					if(op == uWS::OpCode::BINARY){
+						if(msg.size() !=2){
+							std::cout << "message size is not 2 bytes!\n";
+						}
+						const uint8_t b0 = (uint8_t) msg[0];
+						const uint8_t b1 = (uint8_t) msg[1];
+						//ts lil endin
+						mask = (uint32_t)b0 | ((uint32_t)b1 << 8);
+					}
+					else {
+						if(!parseMask(msg, mask)) return;
+					}
+					if(mask != d->lastMask){
+						d->lastMask = mask;
+						std::cout << "mask = " << mask << "\n";
+						//send serial(mask);
+					}
+                    // uint32_t mask;
+                    // if(!parseMask(msg, mask)){
+                    //     return;
+                    // }
+                    // auto *d = ws->getUserData();
+                    // d->lastMs = nowMs();
+                    // if(mask != d->lastMask){
+                    //     //idk why we do this tbh, if its wrong then make it right. i guess rollback? or state correction
+                    //     d->lastMask = mask;
+                    //     std::cout << "mask = " << mask << "\n";
+                    //     //TODO: send the serial mask to the PCB sendSerial(mask);
+                    // }
                 },
             .close = [](auto *ws, int, std::string_view){//yo passing int?!
                     //TODO: make the param int code, but we dont do anythign with it
