@@ -69,6 +69,7 @@ int main(void){
 					if(op == uWS::OpCode::BINARY){
 						if(msg.size() !=2){
 							std::cout << "message size is not 2 bytes!\n";
+							return;
 						}
 						const uint8_t b0 = (uint8_t) msg[0];
 						const uint8_t b1 = (uint8_t) msg[1];
