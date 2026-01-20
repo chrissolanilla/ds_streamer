@@ -1,0 +1,69 @@
+body {
+  background-color: #151516;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  margin: 0;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+/* video fill*/
+#video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+	/* maybe use cover to crop and fill */
+  object-fit: contain;
+	background: #000;
+  z-index: 0;
+}
+
+.unmute {
+  position: fixed;
+  left: 50%;
+  top: max(12px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  z-index: 20;
+
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 122, 198, 0.75);
+  background: rgba(191, 149, 249, 0.85);
+  color: #000;
+}
+
+.hidden { display: none; }
+
+.mobile-UI {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+
+#game {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#video {
+  z-index: 1;
+}
+
+.mobile-UI, .hud, .bumpers, .dpad, .ab, .meta {
+  z-index: 10;
+}
+
