@@ -67,3 +67,32 @@ body {
   z-index: 10;
 }
 
+.media-tools {
+  position: fixed;
+  left: 50%;
+  top: calc(max(12px, env(safe-area-inset-top)) + 56px);
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(20, 20, 20, 0.8);
+  color: white;
+}
+
+.media-tools button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #999;
+  background: #222;
+  color: white;
+}
+
+.vol-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}

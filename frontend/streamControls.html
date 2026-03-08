@@ -14,7 +14,16 @@
     <canvas id="game"></canvas>
 
     <video id="video" autoplay playsinline muted></video>
+	<audio id="stream-audio" autoplay playsinline></audio>
     <button id="unmute" class="unmute hidden">tap for audio</button>
+	<div id="media-tools" class="media-tools">
+	  <!-- <button id="debug-media">debug media</button> -->
+	  <button id="force-unmute">force unmute</button>
+	  <label class="vol-wrap">
+		volume
+		<input id="stream-volume" type="range" min="0" max="1" step="0.05" value="1">
+	  </label>
+	</div>
 
     <div class="mobile-UI">
 
@@ -46,6 +55,7 @@
     </div>
   </div>
 
+  <script src="appConfig.js"></script>
   <script src="controls.js"></script>
 </body>
 </html>

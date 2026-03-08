@@ -1,12 +1,59 @@
+//load config from appConfig
+// const APP_CONFIG = window.APP_CONFIG ?? {
+//     wsBase: `ws://${location.hostname}:9001`,
+//     whepBase: `http://${location.hostname}:8889`,
+//     streamPath: "ds",
+// };
+const APP_CONFIG = window.APP_CONFIG ?? {
+    wsBase: `ws://${location.hostname}:9001`,
+    whepBase: `http://${location.hostname}:8889`,
+    streamPath: "ds",
+};
+
+const videoEl = document.getElementById("video");
+const unmuteBtn = document.getElementById("unmute");
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// const debugMediaBtn = document.getElementById("debug-media");
+const forceUnmuteBtn = document.getElementById("force-unmute");
+const streamVolumeSlider = document.getElementById("stream-volume");
+
+const streamAudioEl = document.getElementById("stream-audio");
+
+let currentStream = null;
+
+function debugLog(...args) {
+    console.log(...args);
+
+    let box = document.getElementById("debug-log");
+    if (!box) {
+        box = document.createElement("pre");
+        box.id = "debug-log";
+        box.style.position = "fixed";
+        box.style.left = "0";
+        box.style.right = "0";
+        box.style.bottom = "0";
+        box.style.maxHeight = "35vh";
+        box.style.overflow = "auto";
+        box.style.margin = "0";
+        box.style.padding = "8px";
+        box.style.background = "rgba(0,0,0,0.85)";
+        box.style.color = "#0f0";
+        box.style.fontSize = "12px";
+        box.style.zIndex = "99999";
+        box.style.whiteSpace = "pre-wrap";
+        document.body.appendChild(box);
+    }
+
+    box.textContent += args.map(String).join(" ") + "\n";
+}
+
 //webrtc
 (async () => {
-    const video = document.getElementById("video");
-    const unmuteBtn = document.getElementById("unmute");
-
-    //autoplay stared mutd
-    video.muted = true;
-    video.autoplay = true;
-    video.playsInline = true;
+    videoEl.muted = true;
+    videoEl.volume = 1.0;
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
 
     function waitIceComplete(pc) {
         if (pc.iceGatheringState === "complete") return Promise.resolve();
@@ -25,27 +72,63 @@
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
-    pc.ontrack = (e) => {
-        const stream = e.streams[0];
-        video.srcObject = stream;
+    const whepUrl = `${APP_CONFIG.whepBase}/${APP_CONFIG.streamPath}/whep`;
 
-        const hasAudio = stream.getAudioTracks().length > 0;
-        if (hasAudio) unmuteBtn?.classList.remove("hidden");
-    };
+
+	pc.ontrack = (e) => {
+		const stream = e.streams[0];
+		currentStream = stream;
+		videoEl.srcObject = stream;
+
+		const audioTracks = stream.getAudioTracks();
+		const videoTracks = stream.getVideoTracks();
+
+		console.log("audio tracks", audioTracks, "video tracks", videoTracks);
+		console.log("video muted:", videoEl.muted);
+		console.log("video volume:", videoEl.volume);
+
+		if (audioTracks[0]) {
+			audioTracks[0].onmute = () => console.log("remote audio track muted");
+			audioTracks[0].onunmute = () => console.log("remote audio track unmuted");
+			audioTracks[0].onended = () => console.log("remote audio track ended");
+		}
+
+		if (audioTracks.length > 0 && unmuteBtn) {
+			unmuteBtn.classList.remove("hidden");
+		}
+
+		streamAudioEl.srcObject = stream;
+		streamAudioEl.muted = false;
+		streamAudioEl.volume = 1.0;
+		streamAudioEl.play().catch((err) => {
+			console.log("audio element play failed", err);
+		});
+	};
+    // pc.ontrack = (e) => {
+    //     const stream = e.streams[0];
+    //     videoEl.srcObject = stream;
+    //
+    //     const audioTracks = stream.getAudioTracks();
+    //     const videoTracks = stream.getVideoTracks();
+    //
+    //     console.log("audio tracks", audioTracks, "video tracks", videoTracks);
+    //     console.log("video muted:", videoEl.muted);
+    //     console.log("video volume:", videoEl.volume);
+    //
+    //     if (audioTracks.length > 0 && unmuteBtn) {
+    //         unmuteBtn.classList.remove("hidden");
+    //     }
+    // };
 
     pc.oniceconnectionstatechange = () => {
         console.log("webrtc ice:", pc.iceConnectionState);
     };
 
-    // prob dont start with that on the phone irl
-    const whepBase = `http://${location.hostname}:8889`;
-    const streamPath = "ds";
-    const whepUrl = `${whepBase}/${streamPath}/whep`;
-
     const offer = await pc.createOffer({
         offerToReceiveVideo: true,
         offerToReceiveAudio: true,
     });
+
     await pc.setLocalDescription(offer);
     await waitIceComplete(pc);
 
@@ -58,20 +141,192 @@
     const answerSDP = await res.text();
     await pc.setRemoteDescription({ type: "answer", sdp: answerSDP });
 
-    //ujnmute
     if (unmuteBtn) {
         unmuteBtn.addEventListener("click", async () => {
-            video.muted = false;
+            videoEl.muted = false;
+            videoEl.volume = 1.0;
+
             try {
-                await video.play();
+                await videoEl.play();
             } catch {}
+
+            try {
+                await audioCtx.resume();
+            } catch {}
+
             unmuteBtn.classList.add("hidden");
         });
     }
 })().catch(console.error);
 
+function logMediaState() {
+    console.log("videoEl.paused:", videoEl.paused);
+    console.log("videoEl.muted:", videoEl.muted);
+    console.log("videoEl.volume:", videoEl.volume);
+    console.log("videoEl.readyState:", videoEl.readyState);
+    console.log("videoEl.currentTime:", videoEl.currentTime);
+    console.log("videoEl.srcObject:", videoEl.srcObject);
+
+    if (currentStream) {
+        const audioTracks = currentStream.getAudioTracks();
+        const videoTracks = currentStream.getVideoTracks();
+
+        console.log("stream audio track count:", audioTracks.length);
+        console.log("stream video track count:", videoTracks.length);
+
+        audioTracks.forEach((t, i) => {
+            console.log(`audio[${i}] enabled=${t.enabled} muted=${t.muted} readyState=${t.readyState}`);
+        });
+
+        videoTracks.forEach((t, i) => {
+            console.log(`video[${i}] enabled=${t.enabled} muted=${t.muted} readyState=${t.readyState}`);
+        });
+    } else {
+        console.log("currentStream is null");
+    }
+}
+
+// if (debugMediaBtn) {
+//     debugMediaBtn.addEventListener("click", () => {
+//         logMediaState();
+//     });
+// }
+
+if (forceUnmuteBtn) {
+    forceUnmuteBtn.addEventListener("click", async () => {
+        videoEl.muted = false;
+        videoEl.volume = 1.0;
+
+        try {
+            await audioCtx.resume();
+        } catch {}
+
+        try {
+            await videoEl.play();
+        } catch (err) {
+            console.log("video play failed", err);
+        }
+
+        logMediaState();
+    });
+}
+
+if (streamVolumeSlider) {
+    streamVolumeSlider.addEventListener("input", () => {
+        videoEl.volume = Number(streamVolumeSlider.value);
+        console.log("stream volume set to", videoEl.volume);
+    });
+}
+// (async () => {
+//     const video = document.getElementById("video");
+//     const unmuteBtn = document.getElementById("unmute");
+//
+//     //autoplay stared mutd
+//     video.muted = true;
+//     video.autoplay = true;
+//     video.playsInline = true;
+//
+//     function waitIceComplete(pc) {
+//         if (pc.iceGatheringState === "complete") return Promise.resolve();
+//         return new Promise((resolve) => {
+//             const check = () => {
+//                 if (pc.iceGatheringState === "complete") {
+//                     pc.removeEventListener("icegatheringstatechange", check);
+//                     resolve();
+//                 }
+//             };
+//             pc.addEventListener("icegatheringstatechange", check);
+//         });
+//     }
+//
+//     const pc = new RTCPeerConnection({
+//         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+//     });
+// 	// const pc = new RTCPeerConnection({
+// 	// 	iceServers: [
+// 	// 		{ urls: "stun:stun.l.google.com:19302" },
+// 	// 		{
+// 	// 			urls: "turn:103.124.104.244:3478",
+// 	// 			username: "user",
+// 	// 			credential: "dssecret"
+// 	// 		}
+// 	// 	]
+// 	// });
+//
+// 	const whepUrl = `${APP_CONFIG.whepBase}/${APP_CONFIG.streamPath}/whep`;
+// 	// debugLog("whep url:", whepUrl);
+//     pc.ontrack = (e) => {
+//         const stream = e.streams[0];
+// 		// debugLog("ontrack fired, tracks:", stream.getTracks().length);
+//         video.srcObject = stream;
+//
+//         const hasAudio = stream.getAudioTracks().length > 0;
+//         if (hasAudio) unmuteBtn?.classList.remove("hidden");
+//
+// 		const audioTracks = stream.getAudioTracks();
+//         const videoTracks = stream.getVideoTracks();
+// 		console.log("audio tracks", audioTracks, "video tracks", videoTracks);
+// 		console.log("video muted: ", video.muted);
+// 		console.log("video volume: ", video.volume);
+//     };
+//
+//     pc.oniceconnectionstatechange = () => {
+//         console.log("webrtc ice:", pc.iceConnectionState);
+// 		// debugLog("ice connection state:", pc.iceConnectionState);
+//     };
+//
+// 	pc.onconnectionstatechange = () => {
+// 		// debugLog("peer connection state:", pc.connectionState);
+// 	};
+//
+// 	pc.onicegatheringstatechange = () => {
+// 		// debugLog("ice gathering state:", pc.iceGatheringState);
+// 	};
+//
+//     // prob dont start with that on the phone irl
+//     // const whepBase = `http://${location.hostname}:8889`;
+//     // const streamPath = "ds";
+//     // const whepUrl = `${whepBase}/${streamPath}/whep`;
+// 	//
+//
+//     const offer = await pc.createOffer({
+//         offerToReceiveVideo: true,
+//         offerToReceiveAudio: true,
+//     });
+//     await pc.setLocalDescription(offer);
+//     await waitIceComplete(pc);
+// 	// debugLog("local description is ready");
+//
+//     const res = await fetch(whepUrl, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/sdp" },
+//         body: pc.localDescription.sdp,
+//     });
+//
+// 	// debugLog("whep response status:", res.status);
+//
+//
+//     const answerSDP = await res.text();
+//
+// 	// debugLog("answer sdp length:", answerSDP.length);
+// 	// debugLog("answer sdp preview:", answerSDP.slice(0, 1200));
+//     await pc.setRemoteDescription({ type: "answer", sdp: answerSDP });
+//
+// 	// debugLog("remote description set");
+//     //ujnmute
+//     if (unmuteBtn) {
+//         unmuteBtn.addEventListener("click", async () => {
+//             video.muted = false;
+//             try {
+//                 await video.play();
+//             } catch {}
+//             unmuteBtn.classList.add("hidden");
+//         });
+//     }
+// })().catch(console.error);
+
 //same controls
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const soundBuffers = new Map();
 
 async function loadSound(name, url) {
@@ -255,10 +510,34 @@ onPress(bButton, "b");
 onPress(startButton, "start");
 onPress(selectButton, "select");
 
-const ws = new WebSocket(`ws://${location.hostname}:9001`);
-ws.addEventListener("open", () => console.log("ws connected"));
-ws.addEventListener("close", () => console.log("ws closed"));
-ws.addEventListener("error", () => console.log("ws error"));
+// const ws = new WebSocket(`ws://${location.hostname}:9001`);
+// const ws = new WebSocket(APP_CONFIG.wsBase);
+let ws = null;
+// let ws = null;
+
+function connectWS() {
+    ws = new WebSocket(APP_CONFIG.wsBase);
+
+    ws.addEventListener("open", () => {
+        console.log("ws connected");
+        sendState(true);
+    });
+
+    ws.addEventListener("close", () => {
+        console.log("ws closed");
+        setTimeout(connectWS, 1500);
+    });
+
+    ws.addEventListener("error", () => {
+        console.log("ws error");
+        ws.close();
+    });
+}
+
+connectWS();
+// ws.addEventListener("open", () => console.log("ws connected"));
+// ws.addEventListener("close", () => console.log("ws closed"));
+// ws.addEventListener("error", () => console.log("ws error"));
 
 const BTN = {
     B: 1 << 0,
@@ -309,3 +588,17 @@ function sendState(force = false) {
 
 setInterval(() => sendState(false), 1000 / 60);
 
+function unlockMedia() {
+    videoEl.muted = false;
+    videoEl.volume = 1.0;
+    videoEl.play().catch(() => {});
+    audioCtx.resume().catch(() => {});
+
+    document.removeEventListener("pointerdown", unlockMedia);
+}
+
+document.addEventListener("pointerdown", unlockMedia, { once: true });
+
+setInterval(() => {
+    sendState(true);
+}, 10000);
