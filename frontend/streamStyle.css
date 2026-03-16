@@ -25,6 +25,7 @@ body {
 }
 
 .unmute {
+    display: none;
   position: fixed;
   left: 50%;
   top: max(12px, env(safe-area-inset-top));
@@ -68,6 +69,7 @@ body {
 }
 
 .media-tools {
+    display: none;
   position: fixed;
   left: 50%;
   top: calc(max(12px, env(safe-area-inset-top)) + 56px);
@@ -91,8 +93,17 @@ body {
 }
 
 .vol-wrap {
-  display: flex;
+  /* display: flex; */
+    display: none;
   align-items: center;
   gap: 6px;
   font-size: 14px;
+}
+
+#force-unmute {
+    display: none;
+}
+
+#stream-volume {
+    display: none;
 }
